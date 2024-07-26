@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
+
+# Script to communicate with a serial device (LCD)
+
 import serial, math
 import time
 
+# 'serial' for serial communication
+
 # COMMANDS
 # from lcd_comm_rev_c.py
+# Command sequences represented as bytearrays
 HELLO = bytearray((0x01, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xc5, 0xd3))
 OPTIONS = bytearray((0x7d, 0xef, 0x69, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x2d))
 RESTART = bytearray((0x84, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01))
@@ -34,6 +40,7 @@ FLIP_180 = bytearray((0x01,))
 NO_FLIP = bytearray((0x00,))
 SEND_PAYLOAD = bytearray((0xFF,))
 
+# Function to pad a message to a multiple of 250 bytes with null bytes (0x00)
 def pad(message):
   msg_size = len(message)
   if not (msg_size / 250).is_integer():
@@ -42,15 +49,21 @@ def pad(message):
   return message
 
 if __name__ == "__main__":
+  # Open a serial connection to the device at /dev/ttyACM0 with a baud rate of 115200
+  # timeout=1 sets a 1-second read timeout
+  # rtscts=1 enables RTS/CTS hardware flow control
   ser = serial.Serial("/dev/ttyACM0", 115200, timeout=1, rtscts=1)
+  # Send the HELLO command padded to a multiple of 250 bytes
   ser.write(pad(HELLO))
+  # Reads 22 bytes of response from the device
   resp = ser.read(22)
+  # Decode and print the response from the device
   print(resp.decode())
+  # Sends the SET_BRIGHTNESS command with brightness level 0x40 (64 in decimal), 
+  # padded to a multiple of 250 bytes
   ser.write(pad(SET_BRIGHTNESS + b"\x40"))
   time.sleep(1)
+  # Sends the SET_BRIGHTNESS command with brightness level 0x00 (0 in decimal), 
+  # padded to a multiple of 250 bytes
   ser.write(pad(SET_BRIGHTNESS + b"\x00"))
-
-
-
-
 
